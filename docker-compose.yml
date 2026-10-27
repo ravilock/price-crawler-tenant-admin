@@ -99,10 +99,29 @@ services:
         condition: service_healthy
       tenant-admin-db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     ports:
     - 127.0.0.1:${APP_PORT:-19480}:8080
     profiles:
     - app
+  migrate:
+    build:
+      context: .
+    entrypoint:
+    - /bin/sh
+    - /run-migrations
+    command:
+    - up
+    environment:
+      DATABASE_URL: ${DATABASE_URL-postgres://tenant:${POSTGRES_PASSWORD:?Set local PostgreSQL password}@tenant-admin-db:5432/tenant?sslmode=disable}
+    depends_on:
+      tenant-admin-db:
+        condition: service_healthy
+    profiles:
+    - app
+    - admin
+    restart: 'no'
 volumes:
   rabbit-data: {}
   keycloak-data: {}

@@ -135,6 +135,23 @@ connection handling, migration gating and dependency-loss readiness are delivere
 T073–T076/T085–T086/T105–T109. Current baseline worker images may exit until executable
 wiring is implemented. This guide does not claim those future acceptance checks passed.
 
+## Owned migrations — T074
+
+The tenant-admin image packages the versioned SQL under `/migrations` and the pinned
+`migrate/migrate:v4.18.3` PostgreSQL CLI. Run `make migrate.up` to apply pending migrations
+after the tenant database reports healthy; run `make migrate.version` to inspect the
+database's migration version. The app profile waits for the one-off migration job to
+finish successfully before starting the application. A dirty or failed migration keeps
+the app stopped. These commands never roll back or force a version.
+
+The former `001_membership.sql` schema is now migration `001_membership`. Its table
+creation is idempotent, so applying version 1 to a retained database created with that
+file records the version and preserves existing rows. Before adopting any existing
+volume, back it up and compare the organization, membership and provisioning function
+definitions with `001_membership.up.sql`. If they differ, stop and repair the schema
+manually before running the migration. Do not drop tables or use `force` as routine
+recovery. Down migrations are for an explicitly planned destructive rollback only.
+
 ## Verification — 2026-10-27
 
 `make test lint build`, Compose resolution and the dependency-image inventory check
@@ -142,3 +159,7 @@ passed. The current test target contains no service behavior tests yet. Minimum
 dependencies passed real `docker compose up --wait` in isolated project `local-check-tenant-admin-b298f85a`,
 with host ports removed; normal shutdown retained its named volumes. This verifies
 dependency startup, not application, migration, demo or business-workflow readiness.
+T074 migration checks also passed: a fresh isolated database reached version 1; after
+seeding an organization and membership and removing only migration metadata to emulate
+the legacy schema, applying version 1 again preserved both rows and reported a clean
+version 1. The isolated test project and its temporary volume were removed afterward.
