@@ -1,0 +1,2 @@
+CREATE TABLE IF NOT EXISTS organization (id uuid PRIMARY KEY, slug text UNIQUE NOT NULL CHECK (slug = 'default'), name text NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS membership (id uuid PRIMARY KEY, organization_id uuid NOT NULL REFERENCES organization(id), subject_id text NOT NULL, role text NOT NULL CHECK (role IN ('administrator','manager','auditor','end_user')), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(organization_id,subject_id));
