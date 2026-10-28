@@ -131,8 +131,8 @@ automatic rollback or forced version is permitted.
 
 Infrastructure readiness is gated by authenticated PostgreSQL `SELECT 1`, RabbitMQ health,
 and Keycloak realm discovery with the expected issuer where selected. Application
-connection handling, migration gating and dependency-loss readiness are delivered by
-T073–T076/T085–T086/T105–T109. Current baseline worker images may exit until executable
+connection handling and dependency-loss readiness are delivered by
+T086/T105/T107–T109. Current baseline worker images may exit until remaining executable
 wiring is implemented. This guide does not claim those future acceptance checks passed.
 
 ## Owned migrations — T074
@@ -159,6 +159,10 @@ passed. The current test target contains no service behavior tests yet. Minimum
 dependencies passed real `docker compose up --wait` in isolated project `local-check-tenant-admin-b298f85a`,
 with host ports removed; normal shutdown retained its named volumes. This verifies
 dependency startup, not application, migration, demo or business-workflow readiness.
+T106 checks passed against isolated local dependencies: migration version 1 applied,
+`make run` started and `/healthz` returned alive, Ctrl-C stopped the host process, and
+stopping the owned database made `make run` fail with a safe diagnostic. The test
+project and temporary volumes were removed afterward.
 T074 migration checks also passed: a fresh isolated database reached version 1; after
 seeding an organization and membership and removing only migration metadata to emulate
 the legacy schema, applying version 1 again preserved both rows and reported a clean
